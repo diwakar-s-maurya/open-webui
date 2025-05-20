@@ -84,6 +84,29 @@
 			<div
 				class="flex flex-col w-full dark:text-gray-200 overflow-y-scroll max-h-[22rem] scrollbar-hidden"
 			>
+				{#if mergedDocuments.some(doc => doc.metadata?.retrieval_queries)}
+					{@const firstDocWithQueries = mergedDocuments.find(doc => doc.metadata?.retrieval_queries)}
+					{#if firstDocWithQueries}
+						<div class="text-sm font-medium dark:text-gray-300 mb-1">
+							{$i18n.t('Retrieval Queries')}
+						</div>
+						<div class="bg-gray-50 dark:bg-gray-800 p-3 rounded-md mb-3">
+							{#if Array.isArray(firstDocWithQueries.metadata.retrieval_queries)}
+								<ul class="text-sm text-gray-600 dark:text-gray-400 list-disc pl-5 space-y-1">
+									{#each firstDocWithQueries.metadata.retrieval_queries as query, i}
+										<li>{query}</li>
+									{/each}
+								</ul>
+							{:else}
+								<div class="text-sm text-gray-600 dark:text-gray-400 p-1">
+									{firstDocWithQueries.metadata.retrieval_queries}
+								</div>
+							{/if}
+						</div>
+						<hr class="border-gray-100 dark:border-gray-850 my-3" />
+					{/if}
+				{/if}
+
 				{#each mergedDocuments as document, documentIdx}
 					<div class="flex flex-col w-full">
 						<div class="text-sm font-medium dark:text-gray-300">
