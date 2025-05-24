@@ -96,7 +96,7 @@
 		requestAnimationFrame(() => {
 			const toolbar = document.querySelector('.table-toolbar') as HTMLElement;
 			if (toolbar) {
-				toolbar.style.transition = 'all 0.2s ease-in-out';
+				toolbar.style.transition = 'transform 0.2s ease-in-out';
 			}
 		});
 	}
@@ -124,9 +124,8 @@
 			xOffset = Math.min(Math.max(0, newX), maxX);
 			yOffset = Math.min(Math.max(0, newY), maxY);
 
-			// Update position
-			toolbar.style.left = `${xOffset}px`;
-			toolbar.style.top = `${yOffset}px`;
+			// Update position using transform for better performance
+			toolbar.style.transform = `translate(${xOffset}px, ${yOffset}px)`;
 		});
 	}
 </script>

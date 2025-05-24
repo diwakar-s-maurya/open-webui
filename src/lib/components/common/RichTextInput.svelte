@@ -44,7 +44,7 @@
 	// create a lowlight instance with all languages loaded
 	const lowlight = createLowlight(all);
 
-	export let className = 'input-prose';
+	export let className = 'markdown-prose';
 	export let placeholder = 'Type here...';
 
 	export let id = '';
