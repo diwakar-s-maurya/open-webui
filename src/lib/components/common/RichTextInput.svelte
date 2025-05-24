@@ -1,11 +1,15 @@
 <script lang="ts">
 	import { marked } from 'marked';
 	import TurndownService from 'turndown';
+	import { gfm } from 'turndown-plugin-gfm';
 	const turndownService = new TurndownService({
 		codeBlockStyle: 'fenced',
 		headingStyle: 'atx'
 	});
 	turndownService.escape = (string) => string;
+
+	// Use turndown-plugin-gfm for proper GFM table support including colspan/rowspan
+	turndownService.use(gfm);
 
 	import { onMount, onDestroy } from 'svelte';
 	import { createEventDispatcher } from 'svelte';
@@ -14,18 +18,175 @@
 	import { EditorState, Plugin, PluginKey, TextSelection } from 'prosemirror-state';
 	import { Decoration, DecorationSet } from 'prosemirror-view';
 
-	import { Editor } from '@tiptap/core';
+	import { Editor, mergeAttributes } from '@tiptap/core';
 
 	import { AIAutocompletion } from './RichTextInput/AutoCompletion.js';
 
 	import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
 	import Placeholder from '@tiptap/extension-placeholder';
+	import { all, createLowlight } from 'lowlight';
+	import StarterKit from '@tiptap/starter-kit';
 	import Highlight from '@tiptap/extension-highlight';
 	import Typography from '@tiptap/extension-typography';
-	import StarterKit from '@tiptap/starter-kit';
-	import { all, createLowlight } from 'lowlight';
+	import Table from '@tiptap/extension-table';
+	import TableRow from '@tiptap/extension-table-row';
+	import TableHeader from '@tiptap/extension-table-header';
+	import TableCell from '@tiptap/extension-table-cell';
 
 	import { PASTED_TEXT_CHARACTER_LIMIT } from '$lib/constants';
+
+	// Extend Table with advanced commands for colspan/rowspan support
+	const TableExtended = Table.extend({
+		addCommands() {
+			return {
+				...(this.parent ? this.parent() : {}),
+				// Cell merging and splitting commands
+				mergeCells: () => ({ state, dispatch }) => {
+					const { mergeCells } = require('prosemirror-tables');
+					return mergeCells(state, dispatch);
+				},
+				splitCell: () => ({ state, dispatch }) => {
+					const { splitCell } = require('prosemirror-tables');
+					return splitCell(state, dispatch);
+				},
+				// Row and column manipulation commands
+				addColumnBefore: () => ({ state, dispatch }) => {
+					const { addColumnBefore } = require('prosemirror-tables');
+					return addColumnBefore(state, dispatch);
+				},
+				addColumnAfter: () => ({ state, dispatch }) => {
+					const { addColumnAfter } = require('prosemirror-tables');
+					return addColumnAfter(state, dispatch);
+				},
+				deleteColumn: () => ({ state, dispatch }) => {
+					const { deleteColumn } = require('prosemirror-tables');
+					return deleteColumn(state, dispatch);
+				},
+				addRowBefore: () => ({ state, dispatch }) => {
+					const { addRowBefore } = require('prosemirror-tables');
+					return addRowBefore(state, dispatch);
+				},
+				addRowAfter: () => ({ state, dispatch }) => {
+					const { addRowAfter } = require('prosemirror-tables');
+					return addRowAfter(state, dispatch);
+				},
+				deleteRow: () => ({ state, dispatch }) => {
+					const { deleteRow } = require('prosemirror-tables');
+					return deleteRow(state, dispatch);
+				},
+				// Header toggle commands
+				toggleHeaderColumn: () => ({ state, dispatch }) => {
+					const { toggleHeaderColumn } = require('prosemirror-tables');
+					return toggleHeaderColumn(state, dispatch);
+				},
+				toggleHeaderRow: () => ({ state, dispatch }) => {
+					const { toggleHeaderRow } = require('prosemirror-tables');
+					return toggleHeaderRow(state, dispatch);
+				},
+				toggleHeaderCell: () => ({ state, dispatch }) => {
+					const { toggleHeaderCell } = require('prosemirror-tables');
+					return toggleHeaderCell(state, dispatch);
+				},
+				// Set cell attributes for advanced formatting
+				setCellAttribute: (name, value) => ({ state, dispatch }) => {
+					const { setCellAttr } = require('prosemirror-tables');
+					return setCellAttr(name, value)(state, dispatch);
+				}
+			};
+		}
+	});
+
+	// Extend TableCell to properly handle colspan/rowspan in HTML output
+	const TableCellExtended = TableCell.extend({
+		addAttributes() {
+			return {
+				...(this.parent ? this.parent() : {}),
+				colspan: {
+					default: 1,
+					parseHTML: element => {
+						const colspan = element.getAttribute('colspan');
+						const value = colspan ? parseInt(colspan, 10) : 1;
+						return value;
+					},
+					renderHTML: attributes => {
+						return attributes.colspan && attributes.colspan > 1 ? { colspan: attributes.colspan } : {};
+					}
+				},
+				rowspan: {
+					default: 1,
+					parseHTML: element => {
+						const rowspan = element.getAttribute('rowspan');
+						const value = rowspan ? parseInt(rowspan, 10) : 1;
+						return value;
+					},
+					renderHTML: attributes => {
+						return attributes.rowspan && attributes.rowspan > 1 ? { rowspan: attributes.rowspan } : {};
+					}
+				},
+				colwidth: {
+					default: null,
+					parseHTML: element => {
+						const colwidth = element.getAttribute('colwidth');
+						const value = colwidth ? colwidth.split(',').map(item => parseInt(item, 10)) : null;
+						return value;
+					},
+					renderHTML: attributes => {
+						return attributes.colwidth ? { colwidth: attributes.colwidth.join(',') } : {};
+					}
+				}
+			};
+		},
+
+		renderHTML({ HTMLAttributes }) {
+			return ['td', mergeAttributes(this.options.HTMLAttributes || {}, HTMLAttributes), 0];
+		}
+	});
+
+	// Extend TableHeader to properly handle colspan/rowspan in HTML output
+	const TableHeaderExtended = TableHeader.extend({
+		addAttributes() {
+			return {
+				...(this.parent ? this.parent() : {}),
+				colspan: {
+					default: 1,
+					parseHTML: element => {
+						const colspan = element.getAttribute('colspan');
+						const value = colspan ? parseInt(colspan, 10) : 1;
+						return value;
+					},
+					renderHTML: attributes => {
+						return attributes.colspan && attributes.colspan > 1 ? { colspan: attributes.colspan } : {};
+					}
+				},
+				rowspan: {
+					default: 1,
+					parseHTML: element => {
+						const rowspan = element.getAttribute('rowspan');
+						const value = rowspan ? parseInt(rowspan, 10) : 1;
+						return value;
+					},
+					renderHTML: attributes => {
+						return attributes.rowspan && attributes.rowspan > 1 ? { rowspan: attributes.rowspan } : {};
+					}
+				},
+				colwidth: {
+					default: null,
+					parseHTML: element => {
+						const colwidth = element.getAttribute('colwidth');
+						const value = colwidth ? colwidth.split(',').map(item => parseInt(item, 10)) : null;
+						return value;
+					},
+					renderHTML: attributes => {
+						return attributes.colwidth ? { colwidth: attributes.colwidth.join(',') } : {};
+					}
+				}
+			};
+		},
+
+		renderHTML({ HTMLAttributes }) {
+			return ['th', mergeAttributes(this.options.HTMLAttributes || {}, HTMLAttributes), 0];
+		}
+	});
 
 	export let oncompositionstart = (e) => {};
 	export let oncompositionend = (e) => {};
@@ -194,6 +355,13 @@
 				Highlight,
 				Typography,
 				Placeholder.configure({ placeholder }),
+				TableExtended.configure({
+					resizable: true,
+					allowTableNodeSelection: true,
+				}),
+				TableRow,
+				TableHeaderExtended,
+				TableCellExtended,
 				...(autocomplete
 					? [
 							AIAutocompletion.configure({
