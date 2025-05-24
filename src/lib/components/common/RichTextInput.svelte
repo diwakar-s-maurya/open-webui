@@ -44,7 +44,7 @@
 	// create a lowlight instance with all languages loaded
 	const lowlight = createLowlight(all);
 
-	export let className = 'markdown-prose';
+	export let className = 'input-prose';
 	export let placeholder = 'Type here...';
 
 	export let id = '';
@@ -468,8 +468,7 @@
 	};
 </script>
 
-<div bind:this={element} class="relative w-full min-w-full h-full min-h-fit {className}">
-</div>
+<div bind:this={element} class="relative w-full min-w-full h-full min-h-fit {className}" />
 
 {#if tableToolbarVisible}
 	<TableToolbar {editor} />
