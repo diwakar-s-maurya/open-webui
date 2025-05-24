@@ -73,4 +73,4 @@ export const tableExtensions = [
 	TableRow,
 	TableHeaderExtended,
 	TableCellExtended
-]; 
+];
