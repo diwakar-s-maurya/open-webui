@@ -413,29 +413,23 @@ input[type='number'] {
 	font-weight: 700;
 }
 
-/* Custom table styling for markdown/tiptap editors to match data grid look */
-.markdown-prose table,
-.input-prose table,
+/* Custom table styling for tiptap editors to match data grid look */
 .tiptap table {
-	@apply w-full text-sm text-left text-gray-500 dark:text-gray-400 max-w-full rounded-xl;
+	@apply w-full text-sm text-left text-gray-500 dark:text-gray-400 max-w-full;
 }
-.markdown-prose thead,
-.input-prose thead,
+
 .tiptap thead {
 	@apply text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-850 dark:text-gray-400 border-none;
 }
-.markdown-prose th,
-.input-prose th,
+
 .tiptap th {
 	@apply px-3 py-1.5 cursor-pointer border border-gray-100 dark:border-gray-850 text-left text-xs text-gray-700 dark:text-gray-400 font-semibold uppercase bg-gray-50 dark:bg-gray-850;
 }
-.markdown-prose td,
-.input-prose td,
+
 .tiptap td {
 	@apply px-3 py-1.5 text-gray-900 dark:text-white w-max border border-gray-100 dark:border-gray-850;
 }
-.markdown-prose tr,
-.input-prose tr,
+
 .tiptap tr {
 	@apply bg-white dark:bg-gray-900 dark:border-gray-850 text-xs;
 }
