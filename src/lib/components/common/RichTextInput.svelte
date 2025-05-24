@@ -22,6 +22,7 @@
 
 	import { AIAutocompletion } from './RichTextInput/AutoCompletion.js';
 	import TableToolbar from './RichTextInput/TableToolbar.svelte';
+	import { tableExtensions } from './RichTextInput/TableSetup';
 
 	import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
 	import Placeholder from '@tiptap/extension-placeholder';
@@ -579,13 +580,7 @@
 				Highlight,
 				Typography,
 				Placeholder.configure({ placeholder }),
-				Table.configure({
-					resizable: true,
-					allowTableNodeSelection: true,
-				}),
-				TableRow,
-				TableHeader,
-				TableCell,
+				...tableExtensions,
 				...(autocomplete
 					? [
 							AIAutocompletion.configure({
